@@ -1,0 +1,63 @@
+# Giai đoạn 1: Sử dụng NVIDIA CUDA
+FROM nvidia/cuda:11.6.1-runtime-ubuntu20.04 AS cuda
+
+# Cài đặt các gói hệ thống cần thiết
+RUN apt-get update && apt-get install -y \
+    libgbm-dev \
+    libgl1-mesa-glx \
+    libxrender1 \
+    && rm -rf /var/lib/apt/lists/*
+
+# Thiết lập các biến môi trường cho CUDA
+ENV PATH /usr/local/cuda/bin:$PATH
+ENV LD_LIBRARY_PATH /usr/local/cuda/lib64:$LD_LIBRARY_PATH
+
+# Giai đoạn 2: Cài đặt Python 3.7 và các gói phụ thuộc
+FROM ubuntu:20.04 AS builder
+
+# Cài đặt các gói hệ thống cần thiết và thêm PPA cho Python 3.7
+RUN apt-get update && apt-get install -y \
+    software-properties-common \
+    && add-apt-repository ppa:deadsnakes/ppa \
+    && apt-get update \
+    && apt-get install -y \
+    python3.7 python3.7-distutils python3.7-venv python3-pip \
+    build-essential \
+    libgl1-mesa-glx \
+    libxrender1 \
+    libfontconfig1 \
+    libglib2.0-0 \
+    libsm6 \
+    libxext6 \
+    libxrender-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Thiết lập thư mục làm việc
+WORKDIR /craft
+
+# Sao chép các tệp cần thiết vào thư mục làm việc
+COPY requirements.txt ./
+RUN pip3 install --upgrade pip
+
+# Cài đặt các gói phụ thuộc
+RUN pip3 install --no-cache-dir -r requirements.txt
+
+# Giai đoạn 3: Kết hợp CUDA và Python
+FROM nvidia/cuda:11.6.1-runtime-ubuntu20.04 AS final
+
+# Thiết lập thư mục làm việc
+WORKDIR /craft
+
+# Cài đặt Python 3.7 từ giai đoạn builder
+COPY --from=builder /usr/bin/python3.7 /usr/bin/python3.7
+COPY --from=builder /usr/bin/pip3 /usr/bin/pip3
+
+# Sao chép các gói đã cài đặt từ giai đoạn Python
+COPY --from=builder /usr/local/lib/python3.7/site-packages /usr/local/lib/python3.7/site-packages
+COPY --from=builder /craft /craft
+ENV PYTHONPATH=/craft
+# Mở cổng cho dịch vụ
+# EXPOSE 9001
+
+# # Khởi động ứng dụng
+# CMD ["python3.7", "app.py"]

@@ -1,0 +1,56 @@
+version: "3.8"
+services:
+  # scenetext:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile
+  #   container_name: scenetext
+  #   command: ["tail", "-f", "/dev/null"]
+  #   volumes:
+  #     - type: bind
+  #       source: .
+  #       target: /scenetext
+
+  #   restart: "always" # Update restart policy if needed
+  # networks:
+  # - local-net
+  craft:
+    build:
+      context: ./src/craft
+      dockerfile: Dockerfile
+    container_name: craft
+    command: ["tail", "-f", "/dev/null"]
+    volumes:
+      - type: bind
+        source: ./src/craft
+        target: /craft
+      - weights:/craft/weights
+    restart: "always"
+    networks:
+      - local-net
+  # parseq:
+  #   build:
+  #     context: ./src/parseq
+  #     dockerfile: Dockerfile
+  #   container_name: parseq
+  #   command: ["tail", "-f", "/dev/null"]
+  #   volumes:
+  #     - type: bind
+  #       source: ./src/parseq
+  #       target: /parseq
+  #     - weights:/parseq/weights
+  #   restart: "always"
+  #   networks:
+  #     - local-net
+
+volumes:
+  weights:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./weights
+  shared_volume:
+
+networks:
+  local-net:
