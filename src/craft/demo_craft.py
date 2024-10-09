@@ -1,7 +1,7 @@
 from craft_predict import predict_craft
 from load_model import load_craft_model
 
-image_path = "./27223.jpg"
+image_path = "./test_images/truck.jpg"
 
 net, refine_net = load_craft_model()
 

@@ -28,7 +28,7 @@ from torch import Tensor
 from torch.optim import Optimizer
 from torch.optim.lr_scheduler import OneCycleLR
 
-from src.parseq.strhub.data.utils import CharsetAdapter, CTCTokenizer, Tokenizer, BaseTokenizer
+from strhub.data.utils import CharsetAdapter, CTCTokenizer, Tokenizer, BaseTokenizer
 
 
 @dataclass
