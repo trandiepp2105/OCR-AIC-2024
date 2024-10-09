@@ -5,7 +5,7 @@ from craft_predict import predict_craft
 from load_model import load_craft_model
 
 # Load model
-net, refine_net = load_craft_model(use_cuda=False)
+net, refine_net = load_craft_model(use_cuda=True)
 
 # Folder chứa hình ảnh
 image_root_path = "./test_images"
