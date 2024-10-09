@@ -10,6 +10,10 @@ from load_model import load_craft_model
 # Kiểm tra nếu CUDA khả dụng
 use_cuda = torch.cuda.is_available()
 cuda_state = use_cuda
+if use_cuda:
+    print("cuda is availabale!")
+else: 
+    print("cuda is not available!")
 net = load_craft_model(use_cuda=use_cuda)
 print("load model success!")
 # Folder chứa hình ảnh
