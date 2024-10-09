@@ -1,12 +1,17 @@
 import os
 import numpy as np
 import time  # Thêm thư viện time
+import torch  # Thêm thư viện torch để kiểm tra CUDA
+
 from craft_predict import predict_craft
 from load_model import load_craft_model
 
 # Load model
-net, refine_net = load_craft_model(use_cuda=True)
-
+# Kiểm tra nếu CUDA khả dụng
+use_cuda = torch.cuda.is_available()
+cuda_state = use_cuda
+net, refine_net = load_craft_model(use_cuda=use_cuda)
+print("load model success!")
 # Folder chứa hình ảnh
 image_root_path = "./test_images"
 result_root_path = "./result"
@@ -22,7 +27,7 @@ for video_name in os.listdir(image_root_path):
                 frame_path = os.path.join(video_path, frame_file)
                 
                 # Predict bounding boxes từ ảnh frame
-                boxes_craft = predict_craft(net, refine_net, image_path=frame_path, text_threshold=0.65, cuda_state=True)
+                boxes_craft = predict_craft(net, refine_net, image_path=frame_path, text_threshold=0.65, cuda_state=cuda_state)
                 
                 # Tạo đường dẫn lưu kết quả
                 result_folder_path = os.path.join(result_root_path, video_name)
