@@ -6,7 +6,6 @@ from craft import CRAFT
 
 # import handle code
 from craft_predict import copyStateDict
-from refinenet import RefineNet
 
 # ==========
 trained_model = './weights/detect/craft_mlt_25k.pth'
@@ -28,7 +27,6 @@ class CraftModelManager:
         self.model_path = model_path
         self.device = torch.device('cuda' if use_cuda and torch.cuda.is_available() else 'cpu')
         self.model = None
-        self.refine_net = None
         # Load the models
         self.load_model()
 
@@ -46,17 +44,16 @@ class CraftModelManager:
         self.model.eval()
 
     def get_model(self):
-        return self.model, self.refine_net
+        return self.model
 
     
 
 def load_craft_model(use_cuda = False):
     model_manager = CraftModelManager(
         model_path='./weights/detect/craft_mlt_25k.pth',
-        # refiner_model_path='weights/craft_refiner_CTW1500.pth',
         use_cuda=use_cuda,
     )
-    net, refine_net = model_manager.get_model()
-    return net, refine_net
+    model = model_manager.get_model()
+    return model
 
 
