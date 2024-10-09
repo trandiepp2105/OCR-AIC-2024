@@ -1,16 +1,40 @@
+import os
 import cv2
 import numpy as np
 
-# Đọc hình ảnh (thay 'path_to_your_image.jpg' bằng đường dẫn đến hình ảnh của bạn)
-image = cv2.imread('./test_images/truck.jpg')
-# Danh sách các bounding boxes
-boxes = [[1153.831298828125, 78.6703109741211], [1278.8968505859375, 78.6703109741211], [1278.8968505859375, 129.10000610351562], [1153.831298828125, 129.10000610351562]], [[1121.5562744140625, 86.73905944824219], [1155.848388671875, 86.73905944824219], [1155.848388671875, 114.97969055175781], [1121.5562744140625, 114.97969055175781]], [[1109.453125, 121.03125], [1214.346923828125, 121.03125], [1214.346923828125, 145.2375030517578], [1109.453125, 145.2375030517578]], [[30.837003707885742, 232.23622131347656], [130.09860229492188, 242.16238403320312], [126.18406677246094, 281.30780029296875], [26.92245864868164, 271.38165283203125]], [[127.08280944824219, 252.1484375], [183.56405639648438, 252.1484375], [183.56405639648438, 282.40625], [127.08280944824219, 282.40625]], [[411.5062561035156, 397.38592529296875], [459.91876220703125, 397.38592529296875], [459.91876220703125, 423.609375], [411.5062561035156, 423.609375]], [[0.0, 768.5484619140625], [76.65312194824219, 768.5484619140625], [76.65312194824219, 788.7203369140625], [0.0, 788.7203369140625]]
-# Chuyển đổi các bounding boxes thành kiểu int
-for box in boxes:
-    box = np.array(box, dtype=np.int32)  # Chuyển đổi sang kiểu int
-    cv2.polylines(image, [box], isClosed=True, color=(0, 255, 0), thickness=2)  # Vẽ bounding box
+# Đường dẫn tới thư mục chứa kết quả .npy
+result_root_path = "./result"
+# Đường dẫn tới thư mục chứa ảnh gốc
+image_root_path = "./test_images"
 
-# Hiển thị hình ảnh
-cv2.imshow('Image with Bounding Boxes', image)
-cv2.waitKey(0)
-cv2.destroyAllWindows()
+# Duyệt qua tất cả các thư mục trong result
+for video_name in os.listdir(result_root_path):
+    video_result_path = os.path.join(result_root_path, video_name)
+    
+    if os.path.isdir(video_result_path):  # Nếu là folder
+        for frame_npy in os.listdir(video_result_path):
+            if frame_npy.endswith(".npy"):  # Kiểm tra nếu là file .npy
+                # Đọc bounding boxes từ file .npy
+                npy_path = os.path.join(video_result_path, frame_npy)
+                boxes = np.load(npy_path, allow_pickle=True)
+                
+                # Tìm tên file ảnh gốc tương ứng
+                frame_jpg = frame_npy.replace(".npy", ".jpg")
+                image_path = os.path.join(image_root_path, video_name, frame_jpg)
+                
+                # Đọc ảnh gốc
+                image = cv2.imread(image_path)
+                
+                if image is None:
+                    print(f"Image {image_path} not found!")
+                    continue
+                
+                # Vẽ các bounding boxes lên ảnh
+                for box in boxes:
+                    box = np.array(box, dtype=np.int32)  # Chuyển bounding box sang kiểu int
+                    cv2.polylines(image, [box], isClosed=True, color=(0, 255, 0), thickness=2)  # Vẽ bounding box
+                
+                # Hiển thị ảnh với bounding boxes
+                cv2.imshow(f'Image with Bounding Boxes: {frame_jpg}', image)
+                cv2.waitKey(0)
+                cv2.destroyAllWindows()
