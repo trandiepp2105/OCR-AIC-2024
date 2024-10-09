@@ -8,7 +8,6 @@ apt-get update && apt-get install -y \
     libxrender1 \
     && rm -rf /var/lib/apt/lists/*
 
-
 echo "upgrade pip!"
 pip install --upgrade pip 
 
