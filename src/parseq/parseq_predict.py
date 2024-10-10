@@ -14,6 +14,9 @@ def predict_parseq(parseq, img_transform, image, device='cuda:0'):
     return (pred, statistics.mean(p[0].tolist()))
 
 
+
+
+
 @torch.inference_mode()
 def predict_parseq_author(parseq, img_transform, image) -> tuple:
     
