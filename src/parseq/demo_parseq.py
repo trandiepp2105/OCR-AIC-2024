@@ -96,12 +96,16 @@ def process_single_video_folder(parseq_model, video_folder, boxes_folder, batch_
     #         results_per_video_frame[key].append(pred)
 
     # # In kết quả cho từng video và frame
+    # output_data = {}
     # for (video_name, frame_number), lines in results_per_video_frame.items():
     #     boxes_path = os.path.join(boxes_folder, f"{frame_number}.npy")
     #     boxes = np.load(boxes_path, allow_pickle=True)
     #     rel = group_text_by_line(boxes, lines)
+    #     output_data[frame_number] = ' '.join(rel)
     #     print(f"Video: {video_name}, Frame: {frame_number}: {' '.join(rel)}")
-
+    # Lưu kết quả vào file JSON
+    # with open(output_file_path, 'w', encoding='utf-8') as json_file:
+    #     json.dump(output_data, json_file, ensure_ascii=False, indent=4)
 # Hàm chuyển đổi 4 điểm sang hình chữ nhật
 def four_points_transform(image, pts):
     tl, tr, br, bl = pts
