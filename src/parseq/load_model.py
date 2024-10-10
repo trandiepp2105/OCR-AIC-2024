@@ -94,7 +94,6 @@ class ParseqModel:
         # Dự đoán trên batch
         with torch.no_grad():
             output = self.model(batch).softmax(-1)
-            print("output: ", output)
         preds, probs = [], []
         for out in output:
             try:
