@@ -5,7 +5,7 @@ apt install unzip
 pip install kaggle
 # Thiết lập biến môi trường cho Kaggle API
 export KAGGLE_USERNAME="vniptrn"
-export KAGGLE_KEY="cd706d0fd387738b8787d699646b4caf"
+export KAGGLE_KEY="e0681eed12844367a890c54b11898ac9"
 
 # Tên dataset trên Kaggle
 DATASET="hkhnhduy/ocr-kf"

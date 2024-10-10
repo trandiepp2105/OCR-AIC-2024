@@ -4,7 +4,7 @@ import numpy as np
 import cv2
 from PIL import Image
 import os
-
+import json
 
 def extract_frame_and_video_info(frame_path):
     video_name = os.path.basename(os.path.dirname(frame_path))  # Tên folder là video_name
@@ -18,7 +18,7 @@ def load_images_and_boxes(video_folder, boxes_folder):
     
     return frame_paths, box_paths
 
-def process_single_video_folder(parseq_model, video_folder, boxes_folder, batch_size = 8):
+def process_single_video_folder(parseq_model, video_folder, boxes_folder, output_file_path, batch_size = 2048):
     image_paths, box_paths = load_images_and_boxes(video_folder, boxes_folder)
     print("load paths success!")
     all_sub_images = []
@@ -41,71 +41,66 @@ def process_single_video_folder(parseq_model, video_folder, boxes_folder, batch_
             
             all_sub_images.append(sub_img)
             image_info.append((video_name, frame_number))  # Lưu video_name và frame_number
-        print(f"add boxes of images {frame_number} done!")
+        # print(f"add boxes of images {frame_number} done!")
     # Chia các sub_images thành từng batch (8 hình một batch)
     
     results_per_video_frame = {}
-    batch_size = 8  # Bắt đầu với batch size 8
-    i = 0  # Biến để theo dõi thứ tự batch
+    # batch_size = 2048  # Bắt đầu với batch size 8
+    # i = 0  # Biến để theo dõi thứ tự batch
 
-    while i < len(all_sub_images):
-        # Lấy batch hiện tại
-        batch_sub_images = all_sub_images[i:i + batch_size]
-        batch_info = image_info[i:i + batch_size]
-
-        if not batch_sub_images:  # Dừng nếu không còn sub-image nào
-            break
-
-        # Đo thời gian bắt đầu dự đoán
-        start_time = time.time()
-
-        # Dự đoán theo batch
-        preds = parseq_model.predict_batch(batch_sub_images)
-
-        # Đo thời gian kết thúc dự đoán
-        end_time = time.time()
-
-        # In thông tin về batch và thời gian dự đoán
-        print(f"Predict batch {i // batch_size + 1} (batch size: {batch_size})")
-        print(f"Time bacth {batch_size}: {end_time - start_time:.2f} seconds")
-
-        # Tăng batch size gấp đôi sau mỗi lần dự đoán
-        batch_size *= 2
-        i += batch_size
-    # for i in range(0, len(all_sub_images), batch_size):
+    # while i < len(all_sub_images):
     #     # Lấy batch hiện tại
     #     batch_sub_images = all_sub_images[i:i + batch_size]
     #     batch_info = image_info[i:i + batch_size]
-        
-    #     # Dự đoán theo batch
 
+    #     if not batch_sub_images:  # Dừng nếu không còn sub-image nào
+    #         break
+
+    #     # Đo thời gian bắt đầu dự đoán
     #     start_time = time.time()
-        
 
+    #     # Dự đoán theo batch
     #     preds = parseq_model.predict_batch(batch_sub_images)
 
+    #     # Đo thời gian kết thúc dự đoán
     #     end_time = time.time()
-    #     print("predict batch: ", i)
-    #     print(f"Batch {batch_size} time: {end_time - start_time:.2f} seconds")
-        
-        # Gom kết quả của batch theo video và frame
-    #     for pred, (video_name, frame_number) in zip(preds[0], batch_info):
-    #         key = (video_name, frame_number)
-    #         if key not in results_per_video_frame:
-    #             results_per_video_frame[key] = []
-    #         results_per_video_frame[key].append(pred)
 
-    # # In kết quả cho từng video và frame
-    # output_data = {}
-    # for (video_name, frame_number), lines in results_per_video_frame.items():
-    #     boxes_path = os.path.join(boxes_folder, f"{frame_number}.npy")
-    #     boxes = np.load(boxes_path, allow_pickle=True)
-    #     rel = group_text_by_line(boxes, lines)
-    #     output_data[frame_number] = ' '.join(rel)
-    #     print(f"Video: {video_name}, Frame: {frame_number}: {' '.join(rel)}")
+    #     # In thông tin về batch và thời gian dự đoán
+    #     print(f"Predict batch {i // batch_size + 1} (batch size: {batch_size})")
+    #     print(f"Time bacth {batch_size}: {end_time - start_time:.2f} seconds")
+
+    #     # Tăng batch size gấp đôi sau mỗi lần dự đoán
+    #     batch_size *= 2
+    #     i += batch_size
+    for i in range(0, len(all_sub_images), batch_size):
+        # Lấy batch hiện tại
+        batch_sub_images = all_sub_images[i:i + batch_size]
+        batch_info = image_info[i:i + batch_size]
+        
+        # Dự đoán theo batch
+
+        
+
+        preds = parseq_model.predict_batch(batch_sub_images)
+        for pred, (video_name, frame_number) in zip(preds[0], batch_info):
+            key = (video_name, frame_number)
+            if key not in results_per_video_frame:
+                results_per_video_frame[key] = []
+            results_per_video_frame[key].append(pred)
+
+    # In kết quả cho từng video và frame
+    output_data = {}
+    for (video_name, frame_number), lines in results_per_video_frame.items():
+        boxes_path = os.path.join(boxes_folder, f"{frame_number}.npy")
+        boxes = np.load(boxes_path, allow_pickle=True)
+        rel = group_text_by_line(boxes, lines)
+        output_data[frame_number] = ' '.join(rel)
     # Lưu kết quả vào file JSON
-    # with open(output_file_path, 'w', encoding='utf-8') as json_file:
-    #     json.dump(output_data, json_file, ensure_ascii=False, indent=4)
+    output_dir = os.path.dirname(output_file_path)
+    os.makedirs(output_dir, exist_ok=True)  # Tạo thư mục nếu chưa tồn tại
+
+    with open(output_file_path, 'w', encoding='utf-8') as json_file:
+        json.dump(output_data, json_file, ensure_ascii=False, indent=4)
 # Hàm chuyển đổi 4 điểm sang hình chữ nhật
 def four_points_transform(image, pts):
     tl, tr, br, bl = pts
@@ -162,53 +157,24 @@ def group_text_by_line(boxes, preds):
     
     return lines
 
-
-
-# # Load mô hình Parseq
-# parseq_model = load_model_parseq()
-# print("Model loaded successfully")
-
-
-# # Đo thời gian bắt đầu
-# start_time = time.time()
-# # Đọc hình ảnh và boxes
-# img = cv2.imread('./test_images/L01_V001/9009.jpg')
-# boxes = np.load("./result/L01_V001/9009.npy", allow_pickle=True)
-
-
-
-# # # Chuyển đổi các sub-images
-# sub_images = []
-# for box in boxes:
-#     box = np.array(box, dtype='float32')
-#     sub_img = four_points_transform(img, box)
-#     sub_img = cv2.cvtColor(sub_img, cv2.COLOR_BGR2RGB)
-#     sub_img = Image.fromarray(sub_img)
-#     sub_images.append(sub_img)
-
-# # Dự đoán theo batch
-# preds = parseq_model.predict_batch(sub_images)
-# # Gom các văn bản theo hàng
-# lines = group_text_by_line(boxes, preds[0])
-
-
-# print(f"rel: {' '.join(lines)}")
-
-# # Đo thời gian kết thúc
-# end_time = time.time()
-
-# # In ra thời gian đã xử lý
-# print(f"Total time taken: {end_time - start_time:.2f} seconds")
-
-# image_paths, box_paths = load_images_and_boxes("./keyframes/L01_V001", "./result/L01_V001")
-
-# video_name, frame_number = extract_frame_and_video_info(image_paths[0])
-# print(f"video name: {video_name}, frame number: {frame_number}")
-
 # Load mô hình Parseq
 parseq_model = load_model_parseq()
 print("Model loaded successfully")
-start_time = time.time()
-process_single_video_folder(parseq_model,"./keyframes/L01_V001",  "./result/L01_V001", 16)
-end_time = time.time()
-print(f"Total time taken: {end_time - start_time:.2f} seconds")
+# start_time = time.time()
+# process_single_video_folder(parseq_model,"./keyframes/L01_V001",  "./result/L01_V001", "./ocr_result", 2048)
+# end_time = time.time()
+# print(f"Total time taken: {end_time - start_time:.2f} seconds")
+base_keyframes_dir = '/keyframes'
+base_results_dir = '/text-detection/result'
+output_base_dir = './ocr_result'
+
+for video_folder in sorted(os.listdir(base_keyframes_dir)):
+    keyframe_dir = os.path.join(base_keyframes_dir, video_folder)
+    result_dir = os.path.join(base_results_dir, video_folder)
+    output_file = os.path.join(output_base_dir, f"{video_folder}.json")
+    
+    if os.path.isdir(keyframe_dir) and os.path.isdir(result_dir):
+        start_time = time.time()
+        process_single_video_folder(parseq_model, keyframe_dir, result_dir, output_file, batch_size=2048)
+        end_time = time.time()
+        print(f"Extracted text from: {video_folder} -- TIME: {end_time - start_time:.2f}!")

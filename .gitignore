@@ -1,7 +1,9 @@
 weights
 result
+result_ocr
 *.pth
 *.jpg
+*.png
 
 # Output directories
 outputs/
