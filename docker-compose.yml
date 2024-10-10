@@ -1,48 +1,35 @@
 version: "3.8"
 services:
-  # scenetext:
+  # craft:
   #   build:
-  #     context: .
+  #     context: ./src/craft
   #     dockerfile: Dockerfile
-  #   container_name: scenetext
+  #   container_name: craft
   #   command: ["tail", "-f", "/dev/null"]
   #   volumes:
   #     - type: bind
-  #       source: .
-  #       target: /scenetext
-
-  #   restart: "always" # Update restart policy if needed
-  # networks:
-  # - local-net
-  craft:
-    build:
-      context: ./src/craft
-      dockerfile: Dockerfile
-    container_name: craft
-    command: ["tail", "-f", "/dev/null"]
-    volumes:
-      - type: bind
-        source: ./src/craft
-        target: /craft
-      - weights:/craft/weights
-    restart: "always"
-    networks:
-      - local-net
-
-  # parseq:
-  #   build:
-  #     context: ./src/parseq
-  #     dockerfile: Dockerfile
-  #   container_name: parseq
-  #   command: ["tail", "-f", "/dev/null"]
-  #   volumes:
-  #     - type: bind
-  #       source: ./src/parseq
-  #       target: /parseq
-  #     - weights:/parseq/weights
+  #       source: ./src/craft
+  #       target: /craft
+  #     - weights:/craft/weights
   #   restart: "always"
   #   networks:
   #     - local-net
+
+  parseq:
+    build:
+      context: ./src/parseq
+      dockerfile: Dockerfile
+    container_name: parseq
+    command: ["tail", "-f", "/dev/null"]
+    volumes:
+      - type: bind
+        source: ./src/parseq
+        target: /parseq
+
+      - weights:/parseq/weights
+    restart: "always"
+    networks:
+      - local-net
 
 volumes:
   weights:
@@ -51,6 +38,13 @@ volumes:
       type: none
       o: bind
       device: ./weights
+  keyframes:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /mnt/d/keyframes
+
   shared_volume:
 
 networks:

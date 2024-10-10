@@ -24,15 +24,17 @@ COPY requirements.txt ./
 # RUN rm -rf /usr/local/lib/python3.*/dist-packages/PyYAML* \
 #     && rm -rf /usr/lib/python3.*/dist-packages/PyYAML* 
 # Cài đặt pip, PyYAML phiên bản 6.0.0 và các gói yêu cầu khác
+
+
+
 RUN pip install --upgrade pip \
     # && pip install --no-cache-dir --ignore-installed PyYAML==6.0.0 \
     && pip install --no-cache-dir -r requirements.txt
 
-# RUN pip install pip==23.2.1
-# RUN pip install pytorch-lightning==1.6.5p
+RUN pip install pip==23.2.1
+RUN pip install pytorch-lightning==1.6.5
 
 ENV PYTHONPATH=/parseq
 ENV PYTHONIOENCODING=utf-8
 
-# Khởi động ứng dụng
-# CMD ["python", "app.py"]
+

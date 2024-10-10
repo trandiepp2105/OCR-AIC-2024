@@ -1,13 +1,3 @@
-# pip install gdown --upgrade
-# pip install unzip
-
-
-
-# gdown --id 1Az9psFV6C1qiqFCL2s6DIBYRKr3Bkjd7
-# unzip weights.zip
-# rm -rf weights.zip
-
-
 #!/bin/bash
 
 # Cập nhật gdown và cài đặt unzip nếu chưa có
@@ -17,8 +7,8 @@ pip install gdown --upgrade
 if ! command -v unzip &> /dev/null
 then
     echo "Unzip chưa được cài đặt. Đang tiến hành cài đặt unzip..."
-    sudo apt update
-    sudo apt install -y unzip
+    apt update
+    apt install -y unzip
 fi
 
 # Tải mô hình từ Google Drive bằng gdown

@@ -1,7 +1,7 @@
 #!/bin/bash
 
-sudo apt update
-sudo apt install unzip
+apt update
+apt install unzip
 pip install kaggle
 # Thiết lập biến môi trường cho Kaggle API
 export KAGGLE_USERNAME="vniptrn"

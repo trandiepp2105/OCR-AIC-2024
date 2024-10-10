@@ -74,28 +74,39 @@ class ParseqModel:
         return pred, statistics.mean(prob[0].tolist())
 
     @torch.inference_mode()
-    def predict_author(self, image):
+    def predict_batch(self, images):
         """
-        Sử dụng mô hình pretrained từ torch.hub để dự đoán văn bản từ hình ảnh đầu vào.
+        Dự đoán cho một batch các hình ảnh đầu vào.
 
         Args:
-            image: Hình ảnh đầu vào để dự đoán.
-
+            images (List[Image]): Danh sách các hình ảnh đầu vào.
+        
         Returns:
-            Tuple (prediction, probability)
+            List[Tuple[str, float]]: Danh sách các dự đoán và xác suất của chúng.
         """
         if self.model is None or self.img_transform is None:
             raise ValueError("Model and image transform must be loaded before prediction.")
         
-        # Chuyển đổi hình ảnh thành định dạng đầu vào của mô hình
-        transformed_image = self.img_transform(image).unsqueeze(0).to(self.device)
+        # Chuyển đổi các hình ảnh
+        transformed_images = [self.img_transform(img).unsqueeze(0) for img in images]
+        batch = torch.cat(transformed_images).to(self.device)
+        
+        # Dự đoán trên batch
+        with torch.no_grad():
+            output = self.model(batch).softmax(-1)
+            print("output: ", output)
+        preds, probs = [], []
+        for out in output:
+            try:
+                pred, prob = self.model.tokenizer.decode(out.unsqueeze(0))
+                preds.append(pred)
+                probs.append(statistics.mean(prob[0].tolist()))
+            except AttributeError as e:
+                print(f"Error decoding output: {e}")
+        
+        return preds, probs
 
-        # Dự đoán với mô hình
-        logits = self.model(transformed_image)
-        pred, prob = self.model.tokenizer.decode(logits.softmax(-1))
 
-        return pred, statistics.mean(prob[0].tolist())
- 
 def load_model_parseq():
     parseq_model = ParseqModel(model_path='./weights/rec/best-parseq.ckpt')
     return parseq_model

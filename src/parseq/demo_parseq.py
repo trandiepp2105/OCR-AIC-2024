@@ -1,9 +1,10 @@
+import time  # Thêm mô-đun để đo thời gian
 from load_model import load_model_parseq
 import numpy as np
 import cv2
 from PIL import Image
 
-# convert sang HCN
+# Hàm chuyển đổi 4 điểm sang hình chữ nhật
 def four_points_transform(image, pts):
     tl, tr, br, bl = pts
     
@@ -19,72 +20,101 @@ def four_points_transform(image, pts):
         [0, 0],
         [max_width, 0],
         [max_width, max_height],
-        [0, max_height]], dtype = "float32")
+        [0, max_height]], dtype="float32")
     
     M = cv2.getPerspectiveTransform(pts, dst)
     warped = cv2.warpPerspective(image, M, (max_width, max_height))
     return warped
 
+# Hàm gom nhóm các box và dự đoán theo dòng
+def group_text_by_line(boxes, preds):
+    boxes = np.array(boxes)
+    preds = np.array(preds)
+    
+    sorted_indices = np.lexsort((boxes[:, 0, 0], boxes[:, 0, 1]))
+    
+    lines = []
+    current_line = []
+    
+    for idx in sorted_indices:
+        box = boxes[idx]
+        pred = preds[idx]
+        
+        if len(current_line) == 0:
+            current_line.append((box, pred))
+        else:
+            current_box_top_y = box[0][1]
+            last_box_top_y = current_line[-1][0][0][1]
+            last_box_bottom_y = current_line[-1][0][2][1]
+            
+            if abs(current_box_top_y - last_box_top_y) < 20 and current_box_top_y < last_box_bottom_y:
+                current_line.append((box, pred))
+            else:
+                current_line.sort(key=lambda x: x[0][0][0])
+                lines.append(" ".join([pred[0] for _, pred in current_line]))
+                current_line = [(box, pred)]
+    
+    if len(current_line) > 0:
+        current_line.sort(key=lambda x: x[0][0][0])
+        lines.append(" ".join([pred[0] for _, pred in current_line]))
+    
+    return lines
+
+# Đo thời gian bắt đầu
+start_time = time.time()
+
+# Load mô hình Parseq
 parseq_model = load_model_parseq()
-print("load model done")
-img = cv2.imread('/keyframes/L01_V001/9359.jpg')
-boxes = np.load("/detect/result/L01_V001/9359.npy", allow_pickle=True)
-# # img = cv2.resize(img, (700, 500))
+print("Model loaded successfully")
+
+# Đọc hình ảnh và boxes
+img = cv2.imread('./test_images/L01_V001/9009.jpg')
+boxes = np.load("./result/L01_V001/9009.npy", allow_pickle=True)
 
 
-# Duyệt qua các box và tách vùng ảnh tương ứng
-for i, box in enumerate(boxes):
-    box = np.array(box, dtype='float32')
-    sub_img = four_points_transform(img, box)
 
-    # Chuyển đổi sang định dạng PIL để xử lý hoặc lưu
-    sub_img = cv2.cvtColor(sub_img, cv2.COLOR_BGR2RGB)
-    sub_img = Image.fromarray(sub_img)
-
-    pred, statis = parseq_model.predict(sub_img)
-    print("pred: ", pred)
-    print("statis: ", statis)
-
-# def merge_boxes(boxes):
-#     # Sắp xếp các box theo trục y (dòng văn bản)
-#     boxes = sorted(boxes, key=lambda box: box[0][1])
-    
-#     merged_boxes = []
-#     current_line = [boxes[0]]
-    
-#     for box in boxes[1:]:
-#         # Nếu box tiếp theo có tọa độ y gần với box trước đó, ta xem nó thuộc cùng một dòng
-#         if abs(box[0][1] - current_line[-1][0][1]) < 20:  # Điều chỉnh ngưỡng nếu cần
-#             current_line.append(box)
-#         else:
-#             # Tạo một box lớn cho dòng hiện tại
-#             min_x = min([b[0][0] for b in current_line])
-#             max_x = max([b[1][0] for b in current_line])
-#             min_y = min([b[0][1] for b in current_line])
-#             max_y = max([b[2][1] for b in current_line])
-#             merged_boxes.append([[min_x, min_y], [max_x, min_y], [max_x, max_y], [min_x, max_y]])
-#             current_line = [box]
-    
-#     # Xử lý dòng cuối cùng
-#     if current_line:
-#         min_x = min([b[0][0] for b in current_line])
-#         max_x = max([b[1][0] for b in current_line])
-#         min_y = min([b[0][1] for b in current_line])
-#         max_y = max([b[2][1] for b in current_line])
-#         merged_boxes.append([[min_x, min_y], [max_x, min_y], [max_x, max_y], [min_x, max_y]])
-
-#     return merged_boxes
-
-# # Áp dụng cho các box đã nhận diện
-# merged_boxes = merge_boxes(boxes)
-
-# for i, box in enumerate(merged_boxes):
+# preds = []
+# for i, box in enumerate(boxes):
 #     box = np.array(box, dtype='float32')
 #     sub_img = four_points_transform(img, box)
-
 #     sub_img = cv2.cvtColor(sub_img, cv2.COLOR_BGR2RGB)
 #     sub_img = Image.fromarray(sub_img)
 
 #     pred, statis = parseq_model.predict(sub_img)
-#     print("pred: ", pred)
-#     print("statis: ", statis)
+#     preds.append(pred[0])  # Lưu kết quả dự đoán
+
+# # Gom các văn bản theo hàng
+# lines = group_text_by_line(boxes, preds)
+
+# # In các dòng văn bản
+# for line in lines:
+#     print(" ".join(line))
+
+
+# # Chuyển đổi các sub-images
+sub_images = []
+for box in boxes:
+    box = np.array(box, dtype='float32')
+    sub_img = four_points_transform(img, box)
+    sub_img = cv2.cvtColor(sub_img, cv2.COLOR_BGR2RGB)
+    sub_img = Image.fromarray(sub_img)
+    sub_images.append(sub_img)
+
+# Dự đoán theo batch
+preds = parseq_model.predict_batch(sub_images)
+print("predict success!")
+print("preds: ", preds)
+# Gom các văn bản theo hàng
+lines = group_text_by_line(boxes, preds[0])
+
+# In các dòng văn bản
+# for line in lines:
+#     print("line: ", line)
+
+print(f"rel: {' '.join(lines)}")
+
+# Đo thời gian kết thúc
+end_time = time.time()
+
+# In ra thời gian đã xử lý
+print(f"Total time taken: {end_time - start_time:.2f} seconds")
