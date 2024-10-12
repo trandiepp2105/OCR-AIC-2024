@@ -3,6 +3,7 @@ result
 ocr_result
 *.pth
 *.jpg
+*.png
 
 # Output directories
 outputs/
