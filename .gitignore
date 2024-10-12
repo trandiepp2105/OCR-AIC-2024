@@ -1,5 +1,6 @@
 weights
 result
+ocr_result
 *.pth
 *.jpg
 
