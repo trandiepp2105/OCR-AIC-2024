@@ -4,10 +4,10 @@ apt install unzip
 pip install kaggle
 # Thiết lập biến môi trường cho Kaggle API
 export KAGGLE_USERNAME="vniptrn"
-export KAGGLE_KEY="cd706d0fd387738b8787d699646b4caf"
+export KAGGLE_KEY="a314214296e4baba214ded52c8bd2ae9"
 
 # Tên dataset trên Kaggle
-DATASET="hkhnhduy/mduy3107/kf-full-l3"
+DATASET="mduy3107/kf-full-l3"
 # kaggle datasets download -d mduy3107/kf-full-l3
 # Thư mục lưu dataset
 DEST_DIR="/keyframes"

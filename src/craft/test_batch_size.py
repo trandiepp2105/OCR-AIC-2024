@@ -46,6 +46,7 @@ def test_batch_size(net, video_path, cuda_state, max_batch_size=1024, start_batc
     return best_batch_size
 
 if __name__ == "__main__":
+    torch.cuda.empty_cache()
     image_root_path = "/keyframes/L25_V004"
     net = load_craft_model(use_cuda=True)
     test_batch_size(net, image_root_path, True)
