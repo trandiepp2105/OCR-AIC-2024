@@ -9,14 +9,13 @@ image_root_path = "./test_images"
 
 
 
-boxes = np.load("./result/L01_V001/9359.npy", allow_pickle=True)
-image = cv2.imread("./test_images/L01_V001/9359.jpg")
+boxes = np.load("./result/L01_V001/11207.npy", allow_pickle=True)
+image = cv2.imread("./keyframes/L01_V001/11207.jpg")
 
-print("box: ", boxes)
 for box in boxes:
     box = np.array(box, dtype=np.int32)  # Chuyển bounding box sang kiểu int
     cv2.polylines(image, [box], isClosed=True, color=(0, 255, 0), thickness=2)  # Vẽ bounding box
-cv2.imshow(f'Image with Bounding Boxes: {9359}', image)
+cv2.imshow(f'Image with Bounding Boxes: ', image)
 
 # Hiển thị ảnh với bounding boxes
 # cv2.imshow(f'Image with Bounding Boxes: {frame_jpg}', image)

@@ -1,19 +1,19 @@
 version: "3.8"
 services:
-  # craft:
-  #   build:
-  #     context: ./src/craft
-  #     dockerfile: Dockerfile
-  #   container_name: craft
-  #   command: ["tail", "-f", "/dev/null"]
-  #   volumes:
-  #     - type: bind
-  #       source: ./src/craft
-  #       target: /craft
-  #     - weights:/craft/weights
-  #   restart: "always"
-  #   networks:
-  #     - local-net
+  craft:
+    build:
+      context: ./src/craft
+      dockerfile: Dockerfile
+    container_name: craft
+    command: ["tail", "-f", "/dev/null"]
+    volumes:
+      - type: bind
+        source: ./src/craft
+        target: /craft
+      - weights:/craft/weights
+    restart: "always"
+    networks:
+      - local-net
 
   parseq:
     build:
