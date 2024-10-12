@@ -1,7 +1,8 @@
 import torch
 import os
+from load_model import load_craft_model
 from craft_predict import predict_craft, predict_craft_batch
-def test_batch_size(net, video_path, cuda_state, max_batch_size=512, start_batch_size=1, increment=1):
+def test_batch_size(net, video_path, cuda_state, max_batch_size=1024, start_batch_size=1, increment=2):
     """
     Kiểm tra batch size lớn nhất mà GPU có thể xử lý được.
     
@@ -34,7 +35,7 @@ def test_batch_size(net, video_path, cuda_state, max_batch_size=512, start_batch
             
             # Nếu thành công, cập nhật best_batch_size
             best_batch_size = current_batch_size
-            current_batch_size += increment  # Tăng batch size lên
+            current_batch_size *= increment  # Tăng batch size lên
             
         except RuntimeError as e:
             # Nếu gặp lỗi liên quan đến bộ nhớ CUDA, dừng thử nghiệm
@@ -43,3 +44,8 @@ def test_batch_size(net, video_path, cuda_state, max_batch_size=512, start_batch
     
     print(f"Largest batch size successfully processed: {best_batch_size}")
     return best_batch_size
+
+if __name__ == "__main__":
+    image_root_path = "/keyframes/L25_V004"
+    net = load_craft_model(use_cuda=True)
+    test_batch_size(net, image_root_path, True)
